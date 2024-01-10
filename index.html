@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic-Tac-Toe</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+      background-color: #101820FF;
+      color: #FFFFFF;
+      position: relative;
+    }
+
+    #header {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    #tic-tac-toe-board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      width: 240px;
+    }
+
+    .cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2em;
+      font-weight: bold;
+      color: #333;
+      background-color: #fff;
+      cursor: pointer;
+      border: 2px solid #333;
+      border-radius: 10px;
+      height: 80px;
+      width: 80px;
+    }
+
+    .cell:hover {
+      background-color: #f0f0f0;
+    }
+
+    #win-draw-modal-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(5px);
+      z-index: 2;
+    }
+
+    .modal {
+      display: none;
+      padding: 20px;
+      border: 2px solid #F2AA4CFF;
+      background: linear-gradient(45deg, #101820FF, #F2AA4CFF);
+      color: #FFFFFF;
+      text-align: center;
+      z-index: 3;
+    }
+
+    .modal.show {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #win-draw-message {
+      margin-bottom: 10px;
+    }
+
+    #new-game-button {
+      font-size: 1.2em;
+      padding: 10px;
+      cursor: pointer;
+      background-color: #F2AA4CFF;
+      color: #FFFFFF;
+      border: none;
+      margin-top: 20px;
+    }
+
+    #score-board {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      font-size: 1.2em;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <div id="player-x-points">Player X: 0</div>
+  <h1>Tic-Tac-Toe</h1>
+  <div id="player-o-points">Player O: 0</div>
+</div>
+
+<div id="tic-tac-toe-board"></div>
+
+<div id="win-draw-modal-container">
+  <div id="win-draw-modal" class="modal">
+    <span id="win-draw-message"></span>
+    <button id="new-game-button" onclick="resetGame()">New Game</button>
+  </div>
+</div>
+
+<div id="score-board"></div>
+
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+  let currentPlayer = 'X';
+  let gameBoard = ['', '', '', '', '', '', '', '', ''];
+  let gameActive = true;
+  let playerXPoints = 0;
+  let playerOPoints = 0;
+
+  function createBoard() {
+    const board = document.getElementById('tic-tac-toe-board');
+    board.innerHTML = '';
+
+    for (let i = 0; i < 9; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.index = i;
+      cell.addEventListener('click', handleCellClick);
+      board.appendChild(cell);
+    }
+  }
+
+  function handleCellClick(event) {
+    const cell = event.target;
+    const index = cell.dataset.index;
+
+    if (gameBoard[index] === '' && gameActive) {
+      gameBoard[index] = currentPlayer;
+      cell.textContent = currentPlayer;
+      cell.classList.add(currentPlayer === 'X' ? 'x' : 'o');
+
+      if (checkWinner()) {
+        showWinModal();
+        updatePoints();
+      } else if (isBoardFull()) {
+        showDrawModal();
+      } else {
+        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+      }
+    }
+  }
+
+  function checkWinner() {
+    const winningCombinations = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+      [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+      [0, 4, 8], [2, 4, 6]             // Diagonals
+    ];
+
+    for (const combination of winningCombinations) {
+      const [a, b, c] = combination;
+      if (gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function isBoardFull() {
+    return !gameBoard.includes('');
+  }
+
+  function showWinModal() {
+    const winDrawModalContainer = document.getElementById('win-draw-modal-container');
+    const winDrawModal = document.getElementById('win-draw-modal');
+    const winDrawMessage = document.getElementById('win-draw-message');
+    winDrawMessage.textContent = `Player ${currentPlayer} Wins!`;
+    winDrawModal.classList.add('show');
+    winDrawModalContainer.style.display = 'flex';
+    gameActive = false;
+  }
+
+  function showDrawModal() {
+    const winDrawModalContainer = document.getElementById('win-draw-modal-container');
+    const winDrawModal = document.getElementById('win-draw-modal');
+    const winDrawMessage = document.getElementById('win-draw-message');
+    winDrawMessage.textContent = "It's a Draw!";
+    winDrawModal.classList.add('show');
+    winDrawModalContainer.style.display = 'flex';
+    gameActive = false;
+  }
+
+  function resetGame() {
+    const winDrawModalContainer = document.getElementById('win-draw-modal-container');
+    const winDrawModal = document.getElementById('win-draw-modal');
+
+    winDrawModal.classList.remove('show');
+    winDrawModalContainer.style.display = 'none';
+
+    currentPlayer = 'X';
+    gameBoard = ['', '', '', '', '', '', '', '', ''];
+    gameActive = true;
+
+    const cells = document.getElementsByClassName('cell');
+    for (const cell of cells) {
+      cell.textContent = '';
+      cell.classList.remove('x', 'o');
+    }
+  }
+
+  function updatePoints() {
+    if (currentPlayer === 'X') {
+      playerXPoints++;
+    } else {
+      playerOPoints++;
+    }
+
+    const playerXPointsElement = document.getElementById('player-x-points');
+    const playerOPointsElement = document.getElementById('player-o-points');
+
+    playerXPointsElement.textContent = `Player X: ${playerXPoints}`;
+    playerOPointsElement.textContent = `Player O: ${playerOPoints}`;
+  }
+
+  // Initialize the board
+  createBoard();
+</script>
+</body>
+</html>
